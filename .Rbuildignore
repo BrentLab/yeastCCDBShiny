@@ -9,3 +9,5 @@
 ^\.github$
 dockerfile
 .dockerignore
+index.md
+.Rprofile.site
