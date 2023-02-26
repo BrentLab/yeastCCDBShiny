@@ -3,3 +3,9 @@
 ^LICENSE\.md$
 ^yeastCCDBShiny\.Rproj$
 ^\.Rproj\.user$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
+dockerfile
+.dockerignore
