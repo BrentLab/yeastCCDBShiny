@@ -11,3 +11,4 @@ dockerfile
 .dockerignore
 index.md
 .Rprofile.site
+tmp

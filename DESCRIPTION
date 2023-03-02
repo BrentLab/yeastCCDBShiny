@@ -19,4 +19,8 @@ URL: https://github.com/BrentLab/yeastCCDBShiny,
     https://brentlab.github.io/yeastCCDBShiny/
 BugReports: https://github.com/BrentLab/yeastCCDBShiny/issues
 Imports: 
+    DT,
     shiny (>= 1.7.4)
+Depends: 
+    R (>= 2.10)
+LazyData: true
