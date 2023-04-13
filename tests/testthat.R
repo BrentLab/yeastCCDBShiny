@@ -7,6 +7,7 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
+library(webmockr)
 library(yeastCCDBShiny)
 
 test_check("yeastCCDBShiny")

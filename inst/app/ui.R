@@ -1,35 +1,38 @@
-ui <- shiny::navbarPage(
-  "Yeast Calling Cards DB",
-  shiny::tabPanel("DB Tables",
-                  shiny::selectInput(
-                    "db_tables",
-                    "Choose a table",
-                    choices = names(raw_db_tables)),
-                  table_detail_ui('db_table')),
-  shiny::tabPanel("User Auth", login_ui("user_auth")),
-  header = tags$head(
-    tags$script(shiny::HTML('// In the client side JavaScript code
+library(shiny)
+library(shinyjs)
+library(shinydashboard)
+library(DT)
 
-                $(document).on("shiny:connected", function() {
-                console.log("hello world!!")
-
-                    // Retrieve the authentication token from localStorage
-                    var authToken = localStorage.getItem("authToken");
-
-                    // If the authentication token is null, do nothing
-                    if (authToken == null) {
-                        return;
-                    }
-
-                    // Otherwise, set the authentication token in the Shiny input
-                    Shiny.setInputValue("authToken", authToken);
-                });
-
-                // Custom message handler to save the authentication token in localStorage
-                Shiny.addCustomMessageHandler("saveAuthToken", function(token) {
-                    console.log(token);
-                    localStorage.setItem("authToken", token);
-                    console.log(localStorage.getItem("authToken"));
-                });'))
+ui <- dashboardPage(
+  dashboardHeader(
+    title = 'Calling Cards Review',
+    tags$li(class = "dropdown",
+            shinyjs::hidden(tags$span(id = "user_info")),
+            actionButton("show_login_modal", "Login",
+                         class = "navbar-btn",
+                         style = "margin-left: 10px;"),
+            style = "float: right;")
+  ),
+  dashboardSidebar(
+    conditionalPanel(
+      condition = "input.loginState == 1", # Show only when logged in
+      selectInput("tf_selector", "Select an option",
+                  choices = NULL)
+    )
+  ),
+  dashboardBody(
+    useShinyjs(),
+    tags$script(paste0("Shiny.addCustomMessageHandler('loginState', ",
+                       "function(msg) { Shiny.setInputValue('loginState', msg); });")),
+    shiny::fluidRow(
+      plotly::plotlyOutput("rank_response_plot")
+    ),
+    shiny::fluidRow(
+      conditionalPanel(
+        condition = "input.loginState == 1", # Show only when logged in
+        actionButton("update_button", "Update")
+      ),
+      DT::dataTableOutput("tf_manual_review_table")
+    )
   )
 )

@@ -12,3 +12,6 @@ dockerfile
 index.md
 .Rprofile.site
 tmp
+about.md
+codecov.yml
+*tar.gz

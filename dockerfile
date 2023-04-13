@@ -1,5 +1,5 @@
 # Base image
-FROM rocker/r-ver:4.2.0
+FROM rocker/r-ver:4.2.3
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -11,33 +11,33 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt-dev \
     libssl-dev \
     libssh2-1-dev \
+    libsodium-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Clean up
 RUN apt-get autoremove -y
 
-COPY Rprofile.site /etc/R
 ENV _R_SHLIB_STRIP_=true
 
-# Install renv and create a new project library
-RUN Rscript -e 'install.packages("renv")'
-RUN Rscript -e 'renv::init()'
+RUN mkdir -p /usr/lib/R/etc
 
 RUN echo "local(options(shiny.port = 3838, shiny.host = '0.0.0.0'))" > /usr/lib/R/etc/Rprofile.site
+RUN echo "options(encoding = 'UTF-8')" >> /usr/lib/R/etc/Rprofile.site
+RUN echo "options(Ncpus = parallel::detectCores())" >> /usr/lib/R/etc/Rprofile.site
 
+RUN Rscript -e "install.packages(c('devtools','jsonlite'))"
 
-RUN addgroup --system app && adduser --system --ingroup app app
-WORKDIR /home/app
+RUN Rscript -e "\
+  library(jsonlite);\
+  repo <- 'your_github_username/yeastCCDBShiny';\
+  latest_release_api_url <- paste0('https://api.github.com/repos/', repo, '/releases/latest');\
+  latest_release_tag <- fromJSON(latest_release_api_url)$tag_name;\
+  devtools::install_github(repo, ref=latest_release_tag)"
 
-COPY ./renv.lock .
-RUN Rscript -e "options(renv.consent = TRUE);renv::restore(lockfile = '/home/app/renv.lock', repos = c(CRAN='https://packagemanager.rstudio.com/all/__linux__/focal/latest'))"
-RUN rm -f renv.lock
-
-COPY app .
-
-RUN chown app:app -R /home/app
-USER app
+# this allows you to mount a directory from the host system to the container
+# that may be used to add additional packages without rebuilding the container
+RUN echo ".libPaths('/packages/')" >> /usr/lib/R/etc/Rprofile.site
 
 EXPOSE 3838
 
-CMD ["R", "-e", "shiny::runApp('/home/app')"]
+CMD ["R", "-e", "yeastCCDBShiny::run_app()"]
