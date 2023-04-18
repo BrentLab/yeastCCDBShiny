@@ -19,25 +19,25 @@ RUN apt-get autoremove -y
 
 ENV _R_SHLIB_STRIP_=true
 
-RUN mkdir -p /usr/lib/R/etc
+ENV RENV_VERSION 0.16.0
+RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org'))"
+RUN R -e "remotes::install_github('rstudio/renv@${RENV_VERSION}')"
 
-RUN echo "local(options(shiny.port = 3838, shiny.host = '0.0.0.0'))" > /usr/lib/R/etc/Rprofile.site
-RUN echo "options(encoding = 'UTF-8')" >> /usr/lib/R/etc/Rprofile.site
-RUN echo "options(Ncpus = parallel::detectCores())" >> /usr/lib/R/etc/Rprofile.site
+WORKDIR /app
 
-RUN Rscript -e "install.packages(c('devtools','jsonlite'))"
+# set up Renviron settings -- specifically, set the
+# cache path to enable
+RUN echo "RENV_PATHS_CACHE=/renv/cache" > .Renviron
+RUN echo "RENV_PATHS_LIBRARY_ROOT=/app/renv/library"  >> .Renviron
+RUN echo "RENV_PATHS_LIBRARY_ROOT_ASIS = TRUE"  >> .Renviron
 
-RUN Rscript -e "\
-  library(jsonlite);\
-  repo <- 'your_github_username/yeastCCDBShiny';\
-  latest_release_api_url <- paste0('https://api.github.com/repos/', repo, '/releases/latest');\
-  latest_release_tag <- fromJSON(latest_release_api_url)$tag_name;\
-  devtools::install_github(repo, ref=latest_release_tag)"
+COPY .Rprofile .Rprofile
+# set up Rprofile settings
+RUN echo "local(options(shiny.port = 3838, shiny.host = '0.0.0.0'))" >> .Rprofile
+RUN echo "options(encoding = 'UTF-8')" >> .Rprofile
+RUN echo "options(Ncpus = parallel::detectCores())" >> .Rprofile
 
-# this allows you to mount a directory from the host system to the container
-# that may be used to add additional packages without rebuilding the container
-RUN echo ".libPaths('/packages/')" >> /usr/lib/R/etc/Rprofile.site
+COPY renv renv
 
+# default shiny server port
 EXPOSE 3838
-
-CMD ["R", "-e", "yeastCCDBShiny::run_app()"]

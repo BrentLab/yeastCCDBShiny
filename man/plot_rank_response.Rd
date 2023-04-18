@@ -4,10 +4,12 @@
 \alias{plot_rank_response}
 \title{Create rank response plot}
 \usage{
-plot_rank_response(rank_response_summary)
+plot_rank_response(rank_response_summary, plot_title = "")
 }
 \arguments{
 \item{rank_response_summary}{A rank response summary object}
+
+\item{plot_title}{A title for the plot. Defaults to empty string.}
 }
 \value{
 A ggplot object representing the rank response plot
