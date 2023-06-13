@@ -1,3 +1,5 @@
+library(yeastCCDBShiny)
+
 server <- function(input, output, session) {
   # set up reactive values
   token <- shiny::reactiveVal(NULL)

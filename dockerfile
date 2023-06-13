@@ -19,7 +19,7 @@ RUN apt-get autoremove -y
 
 ENV _R_SHLIB_STRIP_=true
 
-ENV RENV_VERSION 0.16.0
+ENV RENV_VERSION 0.17.3
 RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org'))"
 RUN R -e "remotes::install_github('rstudio/renv@${RENV_VERSION}')"
 

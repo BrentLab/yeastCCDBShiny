@@ -1,3 +1,5 @@
+library(yeastCCDBShiny)
+
 ui <- shiny::fluidPage(
   shiny::fluidRow(
     height = 1, tokenAuthUI("header"),
