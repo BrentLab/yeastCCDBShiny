@@ -1,5 +1,5 @@
 # Base image
-FROM rocker/r-ver:4.2.3
+FROM rocker/r-ver:4.3.0
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

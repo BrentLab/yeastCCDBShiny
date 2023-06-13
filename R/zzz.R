@@ -1,8 +1,8 @@
 #' @importFrom foreach registerDoSEQ
 #' @importFrom utils packageVersion
 #' @importFrom futile.logger flog.threshold flog.info INFO WARN
-.onLoad = function(libname, pkgname){
-
+#' @importFrom labretriever database_info
+.onLoad <- function(libname, pkgname) {
   # set default sequential backend for foreach %dopar%
   foreach::registerDoSEQ()
 
@@ -12,8 +12,10 @@
   #
   # # Log a message at the INFO level to indicate that the package has been loaded
   futile.logger::flog.debug(
-    sprintf("Package '%s' version %s loaded",
-            pkgname,
-            utils::packageVersion(pkgname)))
-
+    sprintf(
+      "Package '%s' version %s loaded",
+      pkgname,
+      utils::packageVersion(pkgname)
+    )
+  )
 }

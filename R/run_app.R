@@ -17,17 +17,13 @@
 #'
 #' @export
 run_app <- function() {
-
   if (interactive()) {
-
     shiny::runApp(appDir = system.file("app",
-                                package = "yeastCCDBShiny"))
-
+      package = "yeastCCDBShiny"
+    ))
   } else {
-
     shiny::shinyAppDir(appDir = system.file("app",
-                                     package = "yeastCCDBShiny"))
-
+      package = "yeastCCDBShiny"
+    ))
   }
-
 }
