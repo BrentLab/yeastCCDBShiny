@@ -157,7 +157,7 @@ process_tf_data <- function(expr_df, binding_df, chipexo_df, cc_df) {
     {
       chipexo_df_fltr <- chipexo_df %>%
         # note -strength so that this sorts the same way as the other binding data
-        dplyr::mutate(binding_signal = -binding_signal)  %>%
+        dplyr::mutate(binding_signal = -binding_signal) %>%
         # where there are ties, select the first (arbitrary --
         # doesn't matter. they are the same)
         distinct(tf_id, target_gene_id, .keep_all = TRUE) %>%
@@ -271,6 +271,9 @@ process_tf_data <- function(expr_df, binding_df, chipexo_df, cc_df) {
 #'
 #' @return A dataframe with response ratios calculated for each group
 #'
+#' @importFrom dplyr arrange desc mutate group_by summarise
+#' @importFrom futile.logger flog.warn
+#'
 #' @examples
 #' # Given a small example dataframe similar to your input
 #' df <- data.frame(
@@ -283,31 +286,31 @@ process_tf_data <- function(expr_df, binding_df, chipexo_df, cc_df) {
 #'
 #' @export
 stable_rank_response <- function(df,
-                                 binding_expr_source_string,
-                                 bin_size,
-                                 separator) {
-  # split the binding_expr_source_string
-  binding_expr_source_split <- strsplit(binding_expr_source_string,
-    separator,
-    perl = TRUE
-  )
-  experiment <- binding_expr_source_split[[1]][[1]]
-  expr_src <- binding_expr_source_split[[1]][[2]]
-
-  # if the number of records is less than the bin size, reset the bin size to
-  # the number of records
-  bin_size <- min(nrow(df), bin_size)
-
+                                 experiment,
+                                 expr_src) {
   df %>%
-    dplyr::arrange(desc(enrichment), binding_signal) %>%
-    dplyr::mutate(rank = create_partitions(nrow(.), bin_size) * bin_size) %>%
+    ungroup() %>%
     dplyr::group_by(rank) %>%
-    dplyr::summarise(group_ratio = sum(responsive)) %>%
-    dplyr::mutate(response_ratio = (cumsum(group_ratio) / rank)) %>%
+    dplyr::summarise(
+      n_responsive_in_rank = sum(responsive),
+      random = unique(random)
+    ) %>%
+    dplyr::mutate(n_successes = cumsum(n_responsive_in_rank)) %>%
+    dplyr::rowwise() %>%
     dplyr::mutate(
-      binding_src = experiment,
-      source_expr = expr_src
-    )
+      test_result = list(binom.test(n_successes,
+        rank,
+        p = random,
+        alternative = "greater"
+      )),
+      response_ratio = test_result$estimate,
+      p_value = test_result$p.value,
+      ci_lower = test_result$conf.int[1],
+      ci_upper = test_result$conf.int[2]
+    ) %>%
+    dplyr::select(-test_result) %>%
+    dplyr::mutate(binding_src = experiment, source_expr = expr_src) %>%
+    ungroup()
 }
 
 
@@ -352,8 +355,7 @@ rank_response_ratio_summarize <- function(df,
                                           effect_expr_thres = 0,
                                           p_expr_thres = 0.05,
                                           normalize = FALSE,
-                                          bin_size = 5,
-                                          separator = ";") {
+                                          bin_size = 5) {
   grouped_df <- df %>% dplyr::group_by(experiment, source_expr)
 
   min_responsive <-
@@ -379,30 +381,13 @@ rank_response_ratio_summarize <- function(df,
         ifelse(
           abs(effect_expr) > effect_expr_thres &
             p_expr < p_expr_thres &
-            dplyr::n() <= min_responsive,
+            dplyr::row_number() <= min_responsive,
           TRUE,
           FALSE
         )
     )
 
-  df_split <- grouped_df %>%
-    droplevels() %>%
-    dplyr::group_split()
-
-  names(df_split) <- dplyr::group_keys(grouped_df) %>%
-    tidyr::unite("test", c(experiment, source_expr),
-      sep = separator
-    ) %>%
-    dplyr::pull()
-
-  rr_df <- purrr::map2(df_split, names(df_split),
-    stable_rank_response,
-    bin_size = bin_size,
-    separator = separator
-  ) %>%
-    do.call("rbind", .)
-
-  random_expectation_df <- grouped_df %>%
+  random_expectation_df_full <- grouped_df %>%
     dplyr::group_by(experiment, source_expr, responsive) %>%
     dplyr::tally() %>%
     tidyr::pivot_wider(
@@ -413,16 +398,48 @@ rank_response_ratio_summarize <- function(df,
     # expr and binding, replace that with 0
     replace(is.na(.), 0) %>%
     dplyr::rename(unresponsive = `FALSE`, responsive = `TRUE`) %>%
-    dplyr::mutate(random = responsive / (unresponsive + responsive)) %>%
-    dplyr::mutate(experiment =
-                    ifelse(!experiment %in% c('chipexo_yiming', 'harbison'),
-                           'calling_cards', experiment)) %>%
+    dplyr::mutate(random = responsive / (unresponsive + responsive))
+
+  rank_response_df <- grouped_df %>%
+    droplevels() %>%
+    dplyr::left_join(
+      dplyr::select(
+        random_expectation_df_full,
+        experiment, source_expr, random
+      )
+    ) %>%
+    dplyr::arrange(
+      experiment, source_expr,
+      dplyr::desc(enrichment), binding_signal
+    ) %>%
+    dplyr::arrange(dplyr::desc(enrichment), binding_signal) %>%
+    # note the min() between the group length and bin_size -- this is to
+    # adjust the bin_size to the number of genes in the event of a short
+    # group
+    dplyr::mutate(
+      rank = create_partitions(n(), min(n(), bin_size)) * min(n(), bin_size)
+    )
+
+  rr_df <- rank_response_df %>%
+    group_map(function(data, keys) {
+      stable_rank_response(data, keys$experiment, keys$source_expr)
+    }) %>%
+    bind_rows()
+
+  random_expectation_df_summary <- random_expectation_df_full %>%
+    dplyr::mutate(
+      experiment =
+        ifelse(!experiment %in% c("chipexo_yiming", "harbison"),
+          "calling_cards", experiment
+        )
+    ) %>%
     distinct() %>%
     dplyr::rename(binding_src = experiment)
 
   list(
     rr = rr_df,
-    random = random_expectation_df
+    random = random_expectation_df_summary,
+    full_rr = rank_response_df
   )
 }
 
@@ -431,12 +448,14 @@ rank_response_ratio_summarize <- function(df,
 #' This function creates a rank response plot using the ggplot2 package. It
 #' takes a rank response summary as input and returns a ggplot object.
 #'
-#' @import ggplot2
+#' @importFrom plotly plot_ly add_trace layout
+#' @importFrom dplyr select ungroup group_by group_map filter pull
+#' @importFrom purrr map
 #'
 #' @param rank_response_summary A rank response summary object
-#' @param color_vector a vector of colors -- must be same length as unique
-#'   binding_src levels
-#' @param plot_title A title for the plot. Defaults to empty string.
+#' @param confidence_intervals Boolean. Default to FALSE. Set to TRUE to plot
+#'   points with confidence interval ranges rather than lines. Note that
+#'   the line plots have the conf.int info in the hovertip
 #'
 #' @return A ggplot object representing the rank response plot
 #'
@@ -449,50 +468,147 @@ rank_response_ratio_summarize <- function(df,
 #'
 #' @export
 plot_rank_response <- function(rank_response_summary,
-                               color_vector,
-                               plot_title = "") {
-  stopifnot(
-    length(unique(rank_response_summary$rr$binding_src)) ==
-      length(color_vector)
-  )
+                               confidence_intervals = FALSE) {
+  plot_list <- rank_response_summary$rr %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(source_expr) %>%
+    dplyr::group_map(function(data, keys) {
+      random_info <- rank_response_summary$random %>%
+        filter(
+          binding_src == "calling_cards",
+          source_expr == keys$source_expr
+        ) %>%
+        mutate(total = unresponsive + responsive) %>%
+        select(responsive, total)
 
-  # use scale_color_manual() with the color_vector to set the colors of the binding_src levels
-  harbison_plt_obj = rank_response_summary$rr %>%
-    filter(binding_src != 'chipexo_yiming') %>%
-  ggplot2::ggplot(
-    ggplot2::aes(rank, response_ratio,
-      color = binding_src))
+      plot_title <- paste(
+        "Expression Source:", keys$source_expr,
+        "\nResponsive : Total (CC gene set): ",
+        random_info$responsive, " : ",
+        random_info$total
+      )
 
-  chipexo_plt_obj = rank_response_summary$rr  %>%
-    filter(binding_src != 'harbison') %>%
-    ggplot2::ggplot(
-      ggplot2::aes(rank, response_ratio,
-                   color = binding_src))
+      p <- plotly::plot_ly(
+        data = data,
+        x = ~rank,
+        y = ~response_ratio,
+        color = ~binding_src,
+        text = ~ format(p_value, digits = 3),
+        hoverinfo = "text",
+        hovertext = ~ paste(
+          "experiment: ", binding_src,
+          "\nrank_bin: ", rank,
+          "\nresponse_ratio: ", response_ratio,
+          "\nconf.int: ", ci_lower, " - ", ci_upper,
+          "\np-value:", p_value
+        )
+      )
 
-    add_layers = function(plt_obj,
-                          remove_binding_src){
+      if (confidence_intervals) {
+        p <- p %>% plotly::add_trace(
+          type = "scatter",
+          mode = "markers",
+          error_y = list(
+            type = "data",
+            symmetric = FALSE,
+            array = ~ ci_upper - response_ratio,
+            arrayminus = ~ response_ratio - ci_lower
+          )
+        )
+      } else {
+        p <- p %>% plotly::add_trace(
+          type = "scatter",
+          mode = "lines"
+        )
+      }
+      p <- p %>%
+        plotly::add_trace(
+          y = ~random,
+          type = "scatter",
+          mode = "lines",
+          color = I("black"),
+          linetype = I("dot"),
+          name = "random",
+          hoverinfo = "y"
+        ) %>%
+        plotly::layout(
+          title = plot_title,
+          xaxis = list(
+            title = "Rank",
+            range = c(0, 150),
+            tickmode = "array",
+            tickvals = seq(0, 150, 5)
+          ),
+          yaxis = list(
+            title = "Response Ratio",
+            range = c(0, 1),
+            tickmode = "array",
+            tickvals = seq(0, 1, .1)
+          ),
+          legend = list(
+            orientation = "h",
+            xanchor = "center",
+            x = 0.5,
+            y = -0.2
+          ),
+          showlegend = TRUE
+        )
 
-      random_df = rank_response_summary$random %>%
-        filter(binding_src != remove_binding_src)
+      list(name = keys$source_expr, plot = p)
+    })
 
-      plt_obj +
-    ggplot2::geom_line() +
-    ggplot2::geom_hline(
-      data = random_df,
-      ggplot2::aes(yintercept = random, linetype = binding_src)) +
-    ggplot2::scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .1)) +
-    ggplot2::scale_x_continuous(breaks = seq(0, 150, 10)) +
-    ggplot2::coord_cartesian(xlim = c(0, 150)) +
-    ggplot2::theme(text = ggplot2::element_text(size = 14)) +
-    ggplot2::labs(color = "Binding Data Source") +
-    ggplot2::scale_color_manual(values = color_vector) +
-    ggplot2::ggtitle(plot_title) +
-    ggplot2::facet_wrap(~source_expr)
-    }
+  output <- purrr::map(plot_list, ~ .$plot)
+  names(output) <- unlist(purrr::map(plot_list, ~ .$name))
 
-    list(
-      harbison = add_layers(harbison_plt_obj, 'chipexo_yiming'),
-      chipexo = add_layers(chipexo_plt_obj, 'harbison'),
-      random_df = rank_response_summary$random
-    )
+  output$random_df <- rank_response_summary$random
+
+  output
 }
+# plot_rank_response <- function(rank_response_summary,
+#                                color_vector,
+#                                plot_title = "") {
+#   stopifnot(
+#     length(unique(rank_response_summary$rr$binding_src)) ==
+#       length(color_vector)
+#   )
+#
+#   # use scale_color_manual() with the color_vector to set the colors of the binding_src levels
+#   harbison_plt_obj = rank_response_summary$rr %>%
+#     filter(binding_src != 'chipexo_yiming') %>%
+#   ggplot2::ggplot(
+#     ggplot2::aes(rank, response_ratio,
+#       color = binding_src))
+#
+#   chipexo_plt_obj = rank_response_summary$rr  %>%
+#     filter(binding_src != 'harbison') %>%
+#     ggplot2::ggplot(
+#       ggplot2::aes(rank, response_ratio,
+#                    color = binding_src))
+#
+#     add_layers = function(plt_obj,
+#                           remove_binding_src){
+#
+#       random_df = rank_response_summary$random %>%
+#         filter(binding_src != remove_binding_src)
+#
+#       plt_obj +
+#     ggplot2::geom_line() +
+#     ggplot2::geom_hline(
+#       data = random_df,
+#       ggplot2::aes(yintercept = random, linetype = binding_src)) +
+#     ggplot2::scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .1)) +
+#     ggplot2::scale_x_continuous(breaks = seq(0, 150, 10)) +
+#     ggplot2::coord_cartesian(xlim = c(0, 150)) +
+#     ggplot2::theme(text = ggplot2::element_text(size = 14)) +
+#     ggplot2::labs(color = "Binding Data Source") +
+#     ggplot2::scale_color_manual(values = color_vector) +
+#     ggplot2::ggtitle(plot_title) +
+#     ggplot2::facet_wrap(~source_expr)
+#     }
+#
+#     list(
+#       harbison = add_layers(harbison_plt_obj, 'chipexo_yiming'),
+#       chipexo = add_layers(chipexo_plt_obj, 'harbison'),
+#       random_df = rank_response_summary$random
+#     )
+# }

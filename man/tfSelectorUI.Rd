@@ -13,5 +13,5 @@ tfSelectorUI(id)
 UI component of the TF selector module
 }
 \seealso{
-\code{\link{tfSelectorServer}, \code{tfSelectorModule}
+\code{\link{tfSelectorServer}}, \code{\link{testTfSelectorModule}}
 }

@@ -4,22 +4,35 @@
 \alias{generate_plot_data}
 \title{Generate Rank Response Plot Data}
 \usage{
-generate_plot_data(rank_response_df, tf_gene)
+generate_plot_data(
+  rank_response_df,
+  tf_gene,
+  normalize_selector,
+  bin_size,
+  confidence_intervals = FALSE
+)
 }
 \arguments{
 \item{rank_response_df}{DataFrame that includes rank response data.
-It should contain columns for 'binding_src', 'exp_ratio', 'bind_ratio', etc.}
+It should contain columns for 'binding_src', 'exp_ratio',
+'bind_ratio', etc.}
 
-\item{tf_gene}{A character string that specifies the transcription factor gene
-to be used for the rank response plot.}
+\item{tf_gene}{A character string that specifies the transcription
+factor gene to be used for the rank response plot.}
+
+\item{confidence_intervals}{Boolean. Default to FALSE. Set to TRUE to
+plot the rank_response plot with points and conf.int ranges rather than
+a line plot. Note that regardless of how this is set, the conf.int info
+is in the hovertip.}
 }
 \value{
-A list containing a ggplot2 plot object ('plot') and a DataFrame ('df').
+A list containing a ggplot2 plot object ('plot')
+and a DataFrame ('df').
 }
 \description{
-A helper function that creates and summarizes rank response data
-for a specific transcription factor gene, and prepares a color-coded
-rank response plot.
+A helper function that creates and summarizes rank
+response data for a specific transcription factor gene, and prepares a
+color-coded rank response plot.
 }
 \details{
 This function summarizes the rank response ratio, determines unique
@@ -29,13 +42,13 @@ factor gene.
 }
 \examples{
 \dontrun{
-if(interactive()){
+if (interactive()) {
   # Generate plot data for transcription factor gene "myGene"
-  result = generate_plot_data(rank_response_df, "myGene")
+  result <- generate_plot_data(rank_response_df, "myGene")
   # Access the plot object
-  plot = result$plot
+  plot <- result$plot
   plot
- }
+}
 }
 
 }

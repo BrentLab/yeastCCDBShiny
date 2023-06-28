@@ -10,5 +10,5 @@ testTfSelectorModule()
 A function which launches an app of only this module
 }
 \seealso{
-\code{tfSelectorServer}, \code{tfSelectorModule}
+\code{\link{tfSelectorUI}}, \code{\link{tfSelectorServer}}
 }

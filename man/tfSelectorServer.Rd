@@ -4,7 +4,18 @@
 \alias{tfSelectorServer}
 \title{TF Selector Server}
 \usage{
-tfSelectorServer(id, token, selected_tf)
+tfSelectorServer(
+  id,
+  token,
+  selected_tf,
+  hops_source,
+  background_source,
+  promoter_source,
+  bin_size,
+  normalize_selector,
+  confidence_intervals,
+  rank_threshold
+)
 }
 \arguments{
 \item{id}{Element ID}
@@ -12,14 +23,30 @@ tfSelectorServer(id, token, selected_tf)
 \item{token}{ReactiveValues. keys \code{username} and \code{token}}
 
 \item{selected_tf}{ReactiveValues. keys \code{tf_id} and \code{tf_gene}}
+
+\item{hops_source}{ReactiveVal char. Source (pipeline) of the experimental hops}
+
+\item{background_source}{ReactiveVal char. Source of the background hops}
+
+\item{promoter_source}{ReactiveVal char. Source of the promoter source}
+
+\item{bin_size}{ReactiveVal integer. size of the rank response bins}
+
+\item{normalize_selector}{ReactiveVal Boolean. Whether to normalize the
+number of responsive genes between sets}
+
+\item{confidence_intervals}{ReactiveVal, Boolean. Toggle on/off the
+confidence intervals on the plot}
 }
 \value{
 None, but the \code{selected_tf} reactive from the outerscope will
 trigger observeEvent in the outer scope.
+
+None
 }
 \description{
 Tf Selector Module Server
 }
 \seealso{
-\code{\link{tfSelectorServer}, \code{tfSelectorModule}
+\code{\link{tfSelectorUI}}, \code{\link{testTfSelectorModule}}
 }

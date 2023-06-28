@@ -9,8 +9,7 @@ rank_response_ratio_summarize(
   effect_expr_thres = 0,
   p_expr_thres = 0.05,
   normalize = FALSE,
-  bin_size = 5,
-  separator = ";"
+  bin_size = 5
 )
 }
 \arguments{

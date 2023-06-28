@@ -20,10 +20,10 @@ plot based on the entered parameters.
 }
 \examples{
 \dontrun{
-if(interactive()){
+if (interactive()) {
   # Launch the Shiny application
   testRetriveRankResponseData()
- }
+}
 }
 }
 \seealso{

@@ -86,7 +86,7 @@ qcTableServer <- function(id, tf_id, token) {
     ) %>%
       dplyr::arrange(experiment_id))
 
-
+    tf_manual_review_changes = reactiveValues(data = NULL)
 
     output$tf_manual_review_table <- DT::renderDataTable({
       DT::datatable(
@@ -100,22 +100,57 @@ qcTableServer <- function(id, tf_id, token) {
       )
     }) # Set server to FALSE to make proxy work
 
-    shiny::observeEvent(input$update_button, {
-      # Code to handle the update button click event
-      # For testing purposes, let's print a message to the console
-      cat("Update button clicked\n")
-      # Update the showButtons reactive value
-      shiny::updateCheckboxInput(session, "showButtons", value = FALSE)
-    })
+    observeEvent(input$update_button,
+       {
+         shiny::req(tf_id())
+         # Check if there are any changes
+         if (length(tf_manual_review_changes$data) > 0) {
+           # Process the changes and send updates to the database
+           tryCatch({
+             # Iterate through the changes and send updates for each changed field
+             for (change in tf_manual_review_changes$data) {
+               labretriever::send(
+                 df = change,
+                 url = labretriever::create_url(
+                   "qcreview",
+                   base_url = yeastCCDBShiny::base_url
+                 ),
+                 token = token(),
+                 update = TRUE
+               )
+             }
+             # Update the showButtons reactive value
+             shiny::updateCheckboxInput(session, "showButtons", value = FALSE)
+           }, error = function(err) {
+             # If an error occurs, show a modal with the error message
+             showModal(modalDialog(
+               title = "Error",
+               paste0(
+                 "An error occurred while updating the data: ",
+                 err$message, "\n\n",
+                 "ALL CHANGES CLEARED"
+               ),
+               easyClose = TRUE
+             ))
+           }, finally = {
+             # retrieve the updated data and update the reactive
+             updated_data <- labretriever::retrieve(
+               labretriever::create_url("qcreview",
+                                        base_url = yeastCCDBShiny::base_url
+               ),
+               token(),
+               filter_list = list(tf_id = tf_id())
+             )
+             # update the review reactive
+             rv$data <- updated_data
 
-    shiny::observeEvent(input$cancel_update_button, {
-      # Code to handle the cancel button click event
-      # You can add your desired logic here
-      # For testing purposes, let's print a message to the console
-      cat("Cancel button clicked\n")
-      # Update the showButtons reactive value
-      shiny::updateCheckboxInput(session, "showButtons", value = FALSE)
-    })
+             # Clear the changes list
+             tf_manual_review_changes$data <- list()
+           })
+         }
+       },
+       ignoreInit = TRUE
+    )
 
     shiny::observeEvent(input$tf_manual_review_table_cell_edit, {
       # Code to handle the table cell edit event
@@ -123,21 +158,24 @@ qcTableServer <- function(id, tf_id, token) {
       shiny::updateCheckboxInput(session, "showButtons", value = TRUE)
 
       info <- input$tf_manual_review_table_cell_edit
-      str(info)
+
       i <- info$row
       j <- info$col
-      v <- info$value
-      # update the data base
-      message("updating the database")
-      # if successful, update the data
-      # else, show the DB response
-      # Update the data in the reactiveValues object
-      rv$data[i, j] <<- DT::coerceValue(v, rv$data[i, j])
-      DT::replaceData(proxy,
-        rv$data,
-        resetPaging = FALSE,
-        rownames = FALSE
-      ) # replaces data in table without resetting paging
+      value <- info$value
+      experiment_id <- rv$data[i, "experiment_id"]
+      update_col <- colnames(rv$data)[j]
+      df <- data.frame(id = experiment_id, value = value)
+      df <- setNames(df, c("id", update_col))
+      # Append the changes to the list with the corresponding id
+      new_index <- length(tf_manual_review_changes$data) + 1
+      tf_manual_review_changes$data[[new_index]] <- df
+
+      # rv$data[i, j] <<- DT::coerceValue(v, rv$data[i, j])
+      # DT::replaceData(proxy,
+      #   rv$data,
+      #   resetPaging = FALSE,
+      #   rownames = FALSE
+      # ) # replaces data in table without resetting paging
     })
   })
 }

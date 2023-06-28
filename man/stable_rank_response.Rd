@@ -4,7 +4,7 @@
 \alias{stable_rank_response}
 \title{Calculate stable rank response for a dataframe}
 \usage{
-stable_rank_response(df, binding_expr_source_string, bin_size, separator)
+stable_rank_response(df, experiment, expr_src)
 }
 \arguments{
 \item{df}{A dataframe containing binding signals and responsiveness}

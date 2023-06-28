@@ -7,6 +7,7 @@
 retrieve_rank_response_data(
   tf_gene,
   tf_id,
+  hops_source,
   background_source,
   promoter_source,
   token
@@ -16,6 +17,9 @@ retrieve_rank_response_data(
 \item{tf_gene}{Character. The name of the transcription factor gene.}
 
 \item{tf_id}{Numeric. The id of the transcription factor.}
+
+\item{hops_source}{Character. The source (pipeline) which produced the
+qbed files}
 
 \item{background_source}{Character. The source of the background dataset.}
 

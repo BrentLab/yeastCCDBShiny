@@ -1,25 +1,34 @@
 #' @title Generate Rank Response Plot Data
-#' @description A helper function that creates and summarizes rank response data
-#'   for a specific transcription factor gene, and prepares a color-coded
-#'   rank response plot.
+#' @description A helper function that creates and summarizes rank
+#'   response data for a specific transcription factor gene, and prepares a
+#'   color-coded rank response plot.
 #' @param rank_response_df DataFrame that includes rank response data.
-#'   It should contain columns for 'binding_src', 'exp_ratio', 'bind_ratio', etc.
-#' @param tf_gene A character string that specifies the transcription factor gene
-#'   to be used for the rank response plot.
-#' @return A list containing a ggplot2 plot object ('plot') and a DataFrame ('df').
+#'   It should contain columns for 'binding_src', 'exp_ratio',
+#'   'bind_ratio', etc.
+#' @param tf_gene A character string that specifies the transcription
+#'   factor gene to be used for the rank response plot.
+#' @param confidence_intervals Boolean. Default to FALSE. Set to TRUE to
+#'   plot the rank_response plot with points and conf.int ranges rather than
+#'   a line plot. Note that regardless of how this is set, the conf.int info
+#'   is in the hovertip.
+#'
+#' @return A list containing a ggplot2 plot object ('plot')
+#'   and a DataFrame ('df').
+#'
 #' @details This function summarizes the rank response ratio, determines unique
 #'   binding source levels, creates a color palette for the different binding
 #'   levels, and prepares a rank response plot for the specified transcription
 #'   factor gene.
+#'
 #' @examples
 #' \dontrun{
-#' if(interactive()){
+#' if (interactive()) {
 #'   # Generate plot data for transcription factor gene "myGene"
-#'   result = generate_plot_data(rank_response_df, "myGene")
+#'   result <- generate_plot_data(rank_response_df, "myGene")
 #'   # Access the plot object
-#'   plot = result$plot
+#'   plot <- result$plot
 #'   plot
-#'  }
+#' }
 #' }
 #'
 #' @seealso
@@ -28,17 +37,38 @@
 #' @rdname generate_plot_data
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom futile.logger flog.warn flog.error
+#' @importFrom futile.logger flog.warn flog.error flog.info flog.debug
 #'
 #' @export
-generate_plot_data = function(rank_response_df, tf_gene){
-  plt = NULL
+generate_plot_data <- function(rank_response_df,
+                               tf_gene,
+                               normalize_selector,
+                               bin_size,
+                               confidence_intervals = FALSE) {
+  output <- list(
+    plt = NULL,
+    rank_response_df = NULL
+  )
+
+  if (is.null(normalize_selector)) {
+    futile.logger::flog.info("normalize_selector is NULL. Setting to FALSE")
+    normalize_selector <- FALSE
+  }
+  if (is.null(bin_size)) {
+    futile.logger::flog.info("bin_size is NULL. Setting to 5")
+    bin_size <- 5
+  }
   tryCatch(
     {
       rank_response_summary <-
         yeastCCDBShiny::rank_response_ratio_summarize(
-          rank_response_df
+          rank_response_df,
+          normalize = normalize_selector,
+          bin_size = bin_size
         )
+
+      # update the `rank_response_df` data slot of the output
+      output$rank_response_df = rank_response_summary$full_rr
 
       # get the unique binding_src levels
       binding_levels <- unique(rank_response_summary$rr$binding_src)
@@ -69,11 +99,10 @@ generate_plot_data = function(rank_response_df, tf_gene){
 
       rank_response_plot <- yeastCCDBShiny::plot_rank_response(
         rank_response_summary,
-        color_vector,
-        tf_gene
+        confidence_intervals
       )
       # update the plot object
-      plt = rank_response_plot
+      output$plt <- rank_response_plot
     },
     warning = function(w) {
       futile.logger::flog.warn(w)
@@ -82,7 +111,9 @@ generate_plot_data = function(rank_response_df, tf_gene){
       futile.logger::flog.error(e)
     },
     finally = {
-      plt
+      futile.logger::flog.debug(paste0('names output: ',
+                       paste(names(output), collapse = '", "')))
+      return(output)
     }
   )
 }
@@ -104,6 +135,8 @@ generate_plot_data = function(rank_response_df, tf_gene){
 #'
 #' @param tf_gene Character. The name of the transcription factor gene.
 #' @param tf_id Numeric. The id of the transcription factor.
+#' @param hops_source Character. The source (pipeline) which produced the
+#'   qbed files
 #' @param background_source Character. The source of the background dataset.
 #' @param promoter_source Character. The source of the promoter dataset.
 #' @param token Character. The authorization token for the API request.
@@ -126,6 +159,7 @@ generate_plot_data = function(rank_response_df, tf_gene){
 #' @export
 retrieve_rank_response_data <- function(tf_gene,
                                         tf_id,
+                                        hops_source,
                                         background_source,
                                         promoter_source,
                                         token) {
@@ -160,10 +194,10 @@ retrieve_rank_response_data <- function(tf_gene,
 
       query_params <- list(
         tf_id = tf_id,
+        hops_source = hops_source,
         background_source = background_source,
         promoter_source = promoter_source
       )
-
       response <- httr::GET(url, headers, query = query_params)
 
       # Check if the response is successful
@@ -211,12 +245,12 @@ retrieve_rank_response_data <- function(tf_gene,
       )
 
       shiny::incProgress(1 / N_STEPS,
-                         message = "retrieving ChipExo data",
-                         detail = "If it exists for this TF..."
+        message = "retrieving ChipExo data",
+        detail = "If it exists for this TF..."
       )
 
       chipexo_df <- labretriever::retrieve(
-        "http://ec2-18-118-133-191.us-east-2.compute.amazonaws.com/api/v1/chipexo/with_annote/",
+        paste0(yeastCCDBShiny::base_url, "/api/v1/chipexo/with_annote/"),
         token,
         filter_list = list(tf_id = tf_id)
       )
@@ -255,10 +289,10 @@ retrieve_rank_response_data <- function(tf_gene,
 #'   plot based on the entered parameters.
 #' @examples
 #' \dontrun{
-#' if(interactive()){
+#' if (interactive()) {
 #'   # Launch the Shiny application
 #'   testRetriveRankResponseData()
-#'  }
+#' }
 #' }
 #' @seealso
 #'  \code{generate_plot_data}, \code{retrieve_rank_response_data}
@@ -272,6 +306,7 @@ testRetriveRankResponseData <- function() {
       shiny::sidebarPanel(
         shiny::textInput("tf_gene", "Transcription Factor Gene", "HAP5"),
         shiny::numericInput("tf_id", "Transcription Factor ID", 6498),
+        shiny::textInput('hops_source', 'Hops Source', 'mitra'),
         shiny::textInput("background_source", "Background Source", "adh1"),
         shiny::textInput("promoter_source", "Promoter Source", "yiming"),
         shiny::textInput("token", "token", Sys.getenv("TOKEN"))
@@ -288,6 +323,7 @@ testRetriveRankResponseData <- function() {
         retrieve_rank_response_data(
           tf_gene = input$tf_gene,
           tf_id = input$tf_id,
+          hops_source = input$hops_source,
           background_source = input$background_source,
           promoter_source = input$promoter_source,
           token = input$token

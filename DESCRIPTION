@@ -4,8 +4,12 @@ Version: 0.0.0.9000
 Authors@R: 
     person("Mateusiak", "Chase", , "chasem@wustl.edu", role = c("aut", "cre"),
            comment = c(ORCID = "https://orcid.org/0000-0002-2890-4242"))
-Description: What the package does (one paragraph).
+Description: This is a frontend for the Yeast Calling Cards database. It 
+  provides users with functionality to display and manipulat the rank-response 
+  plots, and to do QC review. The relevant database entries can be edited 
+  directly from this app.
 License: MIT + file LICENSE
+biocViews:
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
@@ -27,8 +31,9 @@ Imports:
     foreach (>= 1.5.2),
     futile.logger (>= 1.4.3),
     ggplot2 (>= 3.4.2),
+    gprofiler2 (>= 0.2.2),
     labretriever,
-    magrittr,
+    magrittr (>= 2.0.3),
     plotly (>= 4.10.1),
     purrr (>= 1.0.1),
     RColorBrewer (>= 1.1.3),

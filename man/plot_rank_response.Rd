@@ -4,15 +4,14 @@
 \alias{plot_rank_response}
 \title{Create rank response plot}
 \usage{
-plot_rank_response(rank_response_summary, color_vector, plot_title = "")
+plot_rank_response(rank_response_summary, confidence_intervals = FALSE)
 }
 \arguments{
 \item{rank_response_summary}{A rank response summary object}
 
-\item{color_vector}{a vector of colors -- must be same length as unique
-binding_src levels}
-
-\item{plot_title}{A title for the plot. Defaults to empty string.}
+\item{confidence_intervals}{Boolean. Default to FALSE. Set to TRUE to plot
+points with confidence interval ranges rather than lines. Note that
+the line plots have the conf.int info in the hovertip}
 }
 \value{
 A ggplot object representing the rank response plot
