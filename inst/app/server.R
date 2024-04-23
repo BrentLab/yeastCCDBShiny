@@ -46,33 +46,31 @@ server <- function(input, output, session) {
     )
   })
 
-  shiny::observeEvent(rank_threshold(), {
-    goServer('go_module', rank_response_df, rank_threshold)
-  }, ignoreNULL = TRUE)
-
-  shiny::observeEvent(selected_tf_tracker(),
+  shiny::observeEvent(rank_threshold(),
     {
-      rankResponsePlotServer(
-        "rr_plot",
-        shiny::reactive(selected_tf$tf_id),
-        shiny::reactive(selected_tf$tf_gene),
-        rank_response_df,
-        selected_row,
-        hops_source,
-        background_source,
-        promoter_source,
-        bin_size,
-        normalize_selector,
-        confidence_intervals,
-        token
-      )
-      qcTableServer(
-        "qc_table",
-        shiny::reactive(selected_tf$tf_id),
-        token
-      )
+      goServer("go_module", rank_response_df, rank_threshold)
     },
-    ignoreInit = TRUE,
     ignoreNULL = TRUE
+  )
+
+  rankResponsePlotServer(
+    "rr_plot",
+    shiny::reactive(selected_tf$tf_id),
+    shiny::reactive(selected_tf$tf_gene),
+    rank_response_df,
+    selected_row,
+    hops_source,
+    background_source,
+    promoter_source,
+    bin_size,
+    normalize_selector,
+    confidence_intervals,
+    token
+  )
+
+  qcTableServer(
+    "qc_table",
+    shiny::reactive(selected_tf$tf_id),
+    token
   )
 }

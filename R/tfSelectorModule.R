@@ -116,6 +116,9 @@ tfSelectorServer <- function(id,
 
     # retrieve list of active TFs
     shiny::observe({
+
+      shiny::req(token())
+
       tf_list_df <- labretriever::retrieve(
         labretriever::create_url("cctf_tf_list",
           base_url = yeastCCDBShiny::base_url

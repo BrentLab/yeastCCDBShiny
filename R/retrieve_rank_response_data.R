@@ -163,6 +163,8 @@ retrieve_rank_response_data <- function(tf_gene,
                                         background_source,
                                         promoter_source,
                                         token) {
+
+  rank_response_df = NA
   N_STEPS <- 5
   result <- shiny::withProgress(
     message = "Fetching data...",

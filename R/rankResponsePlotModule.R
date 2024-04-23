@@ -116,6 +116,9 @@ rankResponsePlotServer <- function(id,
     rr_df <- reactiveVal(NULL)
 
     shiny::observeEvent(tf_id(), {
+
+      shiny::req(tf_id())
+
       if (test) {
         if (tf_gene() == "HAP5") {
           rr_df(yeastCCDBShiny::hap5_rr_data)
@@ -135,6 +138,7 @@ rankResponsePlotServer <- function(id,
 
     shiny::observeEvent(hops_source(),
       {
+        shiny::req(tf_id())
         if (test) {
           if (tf_gene() == "HAP5") {
             rr_df(yeastCCDBShiny::hap5_rr_data)
@@ -156,6 +160,7 @@ rankResponsePlotServer <- function(id,
 
     shiny::observeEvent(background_source(),
       {
+        shiny::req(tf_id())
         if (test) {
           if (tf_gene() == "HAP5") {
             rr_df(yeastCCDBShiny::hap5_rr_data)
@@ -177,6 +182,7 @@ rankResponsePlotServer <- function(id,
 
     shiny::observeEvent(promoter_source(),
       {
+        shiny::req(tf_id())
         if (test) {
           if (tf_gene() == "HAP5") {
             rr_df(yeastCCDBShiny::hap5_rr_data)
@@ -201,7 +207,8 @@ rankResponsePlotServer <- function(id,
         rr_df(),
         tf_gene(),
         normalize_selector(),
-        bin_size()
+        bin_size(),
+        confidence_intervals()
       )
       flog.info(paste0('names of gen_plot_data_out: ',
                        paste(names(gen_plot_data_out), collapse = '", "')))
@@ -254,7 +261,8 @@ rankResponsePlotServer <- function(id,
           rr_df(),
           tf_gene(),
           normalize_selector(),
-          bin_size()
+          bin_size(),
+          confidence_intervals()
         )
         rr_plots$kemmeren_tfko <- gen_plot_data_out$plt$kemmeren_tfko
         rr_plots$mcisaac_zev <- gen_plot_data_out$plt$mcisaac_zev

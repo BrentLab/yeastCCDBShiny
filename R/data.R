@@ -1,7 +1,7 @@
 #' Base url of the database API
 #'
 #' @export
-base_url <- "http://ec2-13-59-35-163.us-east-2.compute.amazonaws.com"
+base_url <- "http://ec2-3-143-144-93.us-east-2.compute.amazonaws.com"
 
 #' Rank Response Plot Example
 #'

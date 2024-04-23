@@ -74,83 +74,111 @@ qcTableServer <- function(id, tf_id, token) {
       }
     }
 
+    # instantiate reactives
+    rv <- shiny::reactiveValues(data = NULL, trigger=FALSE)
+    tf_manual_review_changes <- reactiveValues(data = NULL)
+
     proxy <- DT::dataTableProxy("tf_manual_review_table")
 
     # Initialize the reactiveValues object with your data frame
-    rv <- shiny::reactiveValues(data = labretriever::retrieve(
-      labretriever::create_url("qcreview",
-        base_url = yeastCCDBShiny::base_url
-      ),
-      token(),
-      filter_list = list(tf_id = tf_id())
-    ) %>%
-      dplyr::arrange(experiment_id))
+    shiny::observe({
+      shiny::req(token(), tf_id())
+      qc_df <- labretriever::retrieve(
+        labretriever::create_url("qcreview",
+          base_url = yeastCCDBShiny::base_url
+        ),
+        token(),
+        filter_list = list(tf_id = tf_id())
+      ) %>%
+        dplyr::arrange(experiment_id)
+      rv$data <- qc_df
 
-    tf_manual_review_changes = reactiveValues(data = NULL)
-
-    output$tf_manual_review_table <- DT::renderDataTable({
-      DT::datatable(
-        rv$data,
-        editable = TRUE,
-        selection = "single",
-        options = list(
-          scrollX = TRUE,
-          width = "100%"
+      output$tf_manual_review_table <- DT::renderDataTable({
+        DT::datatable(
+          rv$data,
+          editable = TRUE,
+          selection = "single",
+          options = list(
+            scrollX = TRUE,
+            width = "100%"
+          )
         )
-      )
-    }) # Set server to FALSE to make proxy work
+      }) # Set server to FALSE to make proxy work
+    })
 
     observeEvent(input$update_button,
-       {
-         shiny::req(tf_id())
-         # Check if there are any changes
-         if (length(tf_manual_review_changes$data) > 0) {
-           # Process the changes and send updates to the database
-           tryCatch({
-             # Iterate through the changes and send updates for each changed field
-             for (change in tf_manual_review_changes$data) {
-               labretriever::send(
-                 df = change,
-                 url = labretriever::create_url(
-                   "qcreview",
-                   base_url = yeastCCDBShiny::base_url
-                 ),
-                 token = token(),
-                 update = TRUE
-               )
-             }
-             # Update the showButtons reactive value
-             shiny::updateCheckboxInput(session, "showButtons", value = FALSE)
-           }, error = function(err) {
-             # If an error occurs, show a modal with the error message
-             showModal(modalDialog(
-               title = "Error",
-               paste0(
-                 "An error occurred while updating the data: ",
-                 err$message, "\n\n",
-                 "ALL CHANGES CLEARED"
-               ),
-               easyClose = TRUE
-             ))
-           }, finally = {
-             # retrieve the updated data and update the reactive
-             updated_data <- labretriever::retrieve(
-               labretriever::create_url("qcreview",
-                                        base_url = yeastCCDBShiny::base_url
-               ),
-               token(),
-               filter_list = list(tf_id = tf_id())
-             )
-             # update the review reactive
-             rv$data <- updated_data
+      {
+        shiny::req(tf_id())
+        # Check if there are any changes
+        if (length(tf_manual_review_changes$data) > 0) {
+          # Process the changes and send updates to the database
+          tryCatch({
+            # Iterate through the changes and send updates for each changed field
+            for (change in tf_manual_review_changes$data) {
+              res = labretriever::send(
+                df = change,
+                url = labretriever::create_url(
+                  "qcreview",
+                  base_url = yeastCCDBShiny::base_url
+                ),
+                token = token(),
+                update = TRUE
+              )
+            }
+            # Update the showButtons reactive value
+            shiny::updateCheckboxInput(session, "showButtons", value = FALSE)
+          }, error = function(err) {
+            # If an error occurs, show a modal with the error message
+            showModal(modalDialog(
+              title = "Error",
+              paste0(
+                "An error occurred while updating the data: ",
+                err$message, "\n\n",
+                "ALL CHANGES CLEARED"
+              ),
+              easyClose = TRUE
+            ))
+          }, finally = {
+            # retrieve the updated data and update the reactive
+            updated_data <- labretriever::retrieve(
+              labretriever::create_url("qcreview",
+                base_url = yeastCCDBShiny::base_url
+              ),
+              token(),
+              filter_list = list(tf_id = tf_id())
+            )
+            # update the review reactive
+            rv$data <- updated_data
 
-             # Clear the changes list
-             tf_manual_review_changes$data <- list()
-           })
-         }
-       },
-       ignoreInit = TRUE
+            # Clear the changes list
+            tf_manual_review_changes$data <- list()
+          })
+        }
+      },
+      ignoreInit = TRUE
     )
+
+    shiny::observeEvent(input$cancel_update_button, {
+      # Update the showButtons reactive value
+      shiny::updateCheckboxInput(session, "showButtons", value = FALSE)
+      # Clear the changes list
+      tf_manual_review_changes$data <- list()
+      rv$trigger <- !rv$trigger
+    }, ignoreInit = TRUE)
+
+    shiny::observeEvent(rv$trigger, {
+      output$tf_manual_review_table <- DT::renderDataTable({
+        DT::datatable(
+          rv$data,
+          editable = TRUE,
+          selection = "single",
+          options = list(
+            scrollX = TRUE,
+            width = "100%"
+          )
+        )
+      }) # Set server to FALSE to make proxy work
+    })
 
     shiny::observeEvent(input$tf_manual_review_table_cell_edit, {
       # Code to handle the table cell edit event

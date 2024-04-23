@@ -300,8 +300,7 @@ stable_rank_response <- function(df,
     dplyr::mutate(
       test_result = list(binom.test(n_successes,
         rank,
-        p = random,
-        alternative = "greater"
+        p = random
       )),
       response_ratio = test_result$estimate,
       p_value = test_result$p.value,
