@@ -73,30 +73,17 @@ rankResponsePlotUI <- function(id) {
 #'
 #' @export
 rankResponsePlotServer <- function(id,
-                                   tf_id,
-                                   tf_gene,
-                                   rank_response_df,
-                                   table_row_click,
-                                   hops_source,
-                                   background_source,
-                                   promoter_source,
+                                   promotersetsig_id,
+                                   expression_id,
                                    bin_size,
-                                   normalize_selector,
-                                   confidence_intervals,
                                    token,
-                                   test = FALSE) {
+                                   test = FALSE,
+                                   ...) {
   shiny::moduleServer(id, function(input, output, session) {
     input_check_list <- list(
-      tf_id = tf_id,
-      tf_gene = tf_gene,
-      rank_response_df = rank_response_df,
-      table_row_click = table_row_click,
-      hops_source = hops_source,
-      background_source = background_source,
-      promoter_source = promoter_source,
+      promotersetsig_id = promotersetsig_id,
+      expression_id = expression_id,
       bin_size = bin_size,
-      normalize_selector = normalize_selector,
-      confidence_intervals = confidence_intervals,
       token = token
     )
     for (i in names(input_check_list)) {
@@ -111,11 +98,12 @@ rankResponsePlotServer <- function(id,
 
     rr_plots <- reactiveValues(
       kemmeren_tfko = NULL,
-      mcisaac_zev = NULL
+      mcisaac_zev = NULL,
+      hu_reimand = NULL
     )
     rr_df <- reactiveVal(NULL)
 
-    shiny::observeEvent(tf_id(), {
+    shiny::observeEvent(promotersetsig_id(), {
 
       shiny::req(tf_id())
 
@@ -125,11 +113,8 @@ rankResponsePlotServer <- function(id,
         }
       } else {
         df <- retrieve_rank_response_data(
-          tf_gene(),
-          tf_id(),
-          hops_source(),
-          background_source(),
-          promoter_source(),
+          promotersetsig_id,
+          expression_id,
           token()
         )
         rr_df(df)

@@ -6,36 +6,33 @@
 \usage{
 rankResponsePlotServer(
   id,
-  tf_id,
-  tf_gene,
-  rank_response_df,
-  table_row_click,
-  hops_source,
-  background_source,
-  promoter_source,
+  promotersetsig_id,
+  expression_id,
   bin_size,
-  normalize_selector,
-  confidence_intervals,
   token,
-  test = FALSE
+  test = FALSE,
+  ...
 )
 }
 \arguments{
 \item{id}{Element ID. see \url{https://mastering-shiny.org/scaling-modules.html}}
 
+\item{bin_size}{Reactive Integer. The rank response bin size. Suggested default is 5}
+
+\item{token}{Reactive Character. User authorization token}
+
+\item{test}{Reactive Boolean. Set to TRUE to pull data from the package
+resources rather than from the database}
+
 \item{tf_id}{Reactive Character. The transcription factor ID from the database
 backend -- this is the ID of that gene in the genes table. Though this is
 an integer, it is passed as a Character vector, eg "1234".}
-
-\item{tf_gene}{Reactive Character. The common name of the gene, eg 'EDS1'}
 
 \item{rank_response_df}{Reactive DataFrame. this is passed in from the
 outside so that it can be updated in this server function and shared
 with other elements in the app.}
 
-\item{table_row_click}{Reactive. This reactive is meant to facilitate actions
-on the plot, eg highlighting, when the user clicks a given row in the QC
-table}
+\item{tf_gene}{Reactive Character. The common name of the gene, eg 'EDS1'}
 
 \item{background_source}{Reactive Character. The background against which the hops'
 significance is calculated. Suggested default is 'adh1'}
@@ -44,18 +41,15 @@ significance is calculated. Suggested default is 'adh1'}
 against which the hops' significance is calculated. Suggested default
 is 'yiming'}
 
-\item{bin_size}{Reactive Integer. The rank response bin size. Suggested default is 5}
+\item{normalize}{Reactive Boolean. Set to TRUE to normalize the number of responsive
+genes across (gene expression) data sets. Suggested default is False}
 
 \item{confidence_intervals}{Reactive Boolean. Set to TRUE to display the range of
 values a given rank response bin may take with a chance of 95\% or greater}
 
-\item{token}{Reactive Character. User authorization token}
-
-\item{test}{Reactive Boolean. Set to TRUE to pull data from the package
-resources rather than from the database}
-
-\item{normalize}{Reactive Boolean. Set to TRUE to normalize the number of responsive
-genes across (gene expression) data sets. Suggested default is False}
+\item{table_row_click}{Reactive. This reactive is meant to facilitate actions
+on the plot, eg highlighting, when the user clicks a given row in the QC
+table}
 }
 \value{
 The module server function, but otherwise no explicit reactive

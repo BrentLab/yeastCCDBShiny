@@ -5,6 +5,8 @@
 .onLoad <- function(libname, pkgname) {
   # set default sequential backend for foreach %dopar%
   foreach::registerDoSEQ()
+  # set the future plan to multisession
+  future::plan(future::multisession)
 
   # # Set the log threshold to INFO, which means that INFO, WARNING, and ERROR
   # # messages will be logged, but DEBUG messages will not
