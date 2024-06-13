@@ -8,6 +8,7 @@
 
 library(testthat)
 library(webmockr)
+library(httptest)
 library(yeastCCDBShiny)
 
 test_check("yeastCCDBShiny")

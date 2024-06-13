@@ -1,94 +1,98 @@
 #' ParamsList S3 Class
 #'
-#' An S3 class to manage a list of parameters with methods to push, pop,
-#'   print, and clear parameters.
+#' An S3 class to manage a list of parameters with methods to print and clear parameters.
 #' @rdname ParamsList
 #'
 #' @param params A list of parameters to initialize the ParamsList object.
 #'
-#' @return An object of class `ParamsList`.
-#' @export
+#' @return An object of class `ParamsList`, sorted by name.
 #' @examples
 #' # Create an instance of ParamsList
-#' params <- ParamsList()
-#'
-#' # Push a single key/value pair
-#' params <- push(params, "key1", "value1")
+#' params <- ParamsList(list(a = 1, b = 2))
 #' print(params)
 #'
-#' # Push multiple key/value pairs
-#' params <- push(params, list(key2 = "value2", key3 = "value3"))
+#' # Use [ and [[ to extract elements
+#' print(params['a'])
+#' print(params[['a']])
+#'
+#' # Use [<- and [[<- to assign elements
+#' params['c'] <- 3
 #' print(params)
 #'
-#' # Pop a single key/value pair
-#' popped_value <- pop(params, "key1")
-#' print(popped_value)
+#' params[c('d', 'e', 'f')] <- list(4, 5, 6)
 #' print(params)
 #'
-#' # Pop multiple key/value pairs
-#' popped_values <- pop(params, c("key2", "key3"))
-#' print(popped_values)
-#' print(params)
-#'
-#' # Clear all parameters
-#' params <- clear(params)
+#' params[['g']] <- 7
 #' print(params)
 ParamsList <- function(params = list()) {
   if (!is.list(params)) {
-    stop("params must be a list")
+    stop("params must be a named list")
   }
-  structure(list(params = params), class = "ParamsList")
+  if (length(params) > 0 && is.null(names(params))) {
+    stop("params must be a named list")
+  }
+
+  sorted_params <- params[sort(names(params))]
+  structure(list(params = sorted_params), class = "ParamsList")
 }
 
-#' Push Parameters into ParamsList
-#'
-#' Adds a list of key/value pairs to the ParamsList object. If a key already exists, its value is updated.
-#' @family ParamsList-methods
-#' @rdname ParamsList
-#'
-#' @param object An object of class `ParamsList`.
-#' @param params A list of key/value pairs to be added or updated in the ParamsList object.
-#'
-#' @return The updated `ParamsList` object.
-#' @export
-push.ParamsList <- function(object, params) {
-  if (!is.list(params)) {
-    stop("params must be a list of key/value pairs")
-  }
-  for (k in names(params)) {
-    object$params[[k]] <- params[[k]]
-  }
-  object
+#' Extract element from ParamsList using `[`
+#' @param x An object of class `ParamsList`.
+#' @param i The name(s) of the parameter(s) to extract.
+#' @param ... Additional arguments (not used).
+#' @return A ParamsList object with the subset of parameters.
+`[.ParamsList` <- function(x, i, ...) {
+  ParamsList(x$params[i])
 }
 
-#' Pop Parameters from ParamsList
+#' Extract element from ParamsList using `[[`
+#' @param x An object of class `ParamsList`.
+#' @param i The name of the parameter to extract.
+#' @param ... Additional arguments (not used).
+#' @return The value of the parameter.
+`[[.ParamsList` <- function(x, i, ...) {
+  x$params[[i]]
+}
+
+`[<-.ParamsList` <- function(x, i, value) {
+  if (!is.null(value) && length(i) != length(value)) {
+    stop("Length of names and values must match")
+  }
+  for (k in seq_along(i)) {
+    if (is.null(value[[k]])) {
+      x$params[[i[k]]] <- NULL
+    } else {
+      x$params[[i[k]]] <- value[[k]]
+    }
+  }
+  x$params <- x$params[sort(names(x$params))]
+  x
+}
+
+#' Assign element to ParamsList using `[[<-`
+#' @param x An object of class `ParamsList`.
+#' @param i The name of the parameter to assign.
+#' @param value The value to assign to the parameter.
+#' @return The modified ParamsList object.
+`[[<-.ParamsList` <- function(x, i, value) {
+  if (!is.character(i) || length(i) != 1) {
+    stop("Only a single character string can be used as an index")
+  }
+  x$params[[i]] <- value
+  x$params <- x$params[sort(names(x$params))]
+  x
+}
+
+#' return the names of the parameters
 #'
-#' Removes and returns the value(s) associated with the provided key(s) from
-#'   the ParamsList object.
 #' @family ParamsList-methods
-#' @rdname ParamsList
 #'
 #' @param object An object of class `ParamsList`.
-#' @param keys A single key as a string or a list of keys.
 #'
-#' @return A list of key/value pairs that were removed.
-#' @export
-pop.ParamsList <- function(object, keys) {
-  if (missing(keys)) {
-    stop("Keys must be provided")
-  }
-  if (is.character(keys)) {
-    keys <- list(keys)
-  }
-  if (!is.list(keys)) {
-    stop("Keys must be a character vector or a list of keys")
-  }
-  values <- list()
-  for (key in keys) {
-    values[[key]] <- object$params[[key]]
-    object$params[[key]] <- NULL
-  }
-  values
+#' @return A character vector of the sorted names of the parameters in the
+#'   same order as the input `object`
+names.ParamsList <- function(object) {
+  names(object$params)
 }
 
 #' Print ParamsList
@@ -98,8 +102,6 @@ pop.ParamsList <- function(object, keys) {
 #' @rdname ParamsList
 #'
 #' @param object An object of class `ParamsList`.
-#'
-#' @export
 print.ParamsList <- function(object) {
   cat("Current params:\n")
   for (key in names(object$params)) {
@@ -107,18 +109,45 @@ print.ParamsList <- function(object) {
   }
 }
 
-#' Clear ParamsList
+#' Convert ParamsList to character
 #'
-#' Clears all parameters from the ParamsList object.
+#' Converts the current state of the ParamsList object to a character string.
 #' @family ParamsList-methods
-#' @rdname ParamsList
+#' @rdname as.character.ParamsList
 #'
-#' @param object An object of class `ParamsList`.
+#' @param x An object of class `ParamsList`.
+#' @param ... Additional arguments (not used).
 #'
-#' @return The cleared `ParamsList` object.
-#' @export
-clear.ParamsList <- function(object) {
-  object$params <- list()
-  object
+#' @return A string representing the ParamsList object.
+as.character.ParamsList <- function(x, ...) {
+  paste(names(x$params),
+        x$params,
+        sep = ": ",
+        collapse = ", ")
 }
+
+#' Convert ParamsList to list
+#'
+#' Converts the current state of the ParamsList object to a list.
+#'
+#' @family ParamsList-methods
+#'
+#' @param x An object of class `ParamsList`.
+#' @param ... Additional arguments (not used).
+#'
+#' @return A name sorted list representing the ParamsList object.
+as.list.ParamsList <- function(x, ...) {
+  x$params
+}
+
+sort.ParamsList <- function(x, decreasing = FALSE, ...) {
+  if (!is.logical(decreasing) || length(decreasing) != 1) {
+    stop("`decreasing` must be a single logical value")
+  }
+
+  sorted_names <- sort(names(x$params), decreasing = decreasing)
+  x$params <- x$params[sorted_names]
+  x
+}
+
 

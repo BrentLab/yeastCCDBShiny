@@ -1,7 +1,6 @@
 #' @importFrom foreach registerDoSEQ
 #' @importFrom utils packageVersion
 #' @importFrom futile.logger flog.threshold flog.info INFO WARN
-#' @importFrom labretriever database_info
 .onLoad <- function(libname, pkgname) {
   # set default sequential backend for foreach %dopar%
   foreach::registerDoSEQ()

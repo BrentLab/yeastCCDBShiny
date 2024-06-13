@@ -6,11 +6,9 @@
 \description{
 This class provides a template for creating API clients that
 require token authentication. It additionally provides a method of
-connecting to a redis server for caching API responses. API params are
-validated against a list of valid keys.
-}
-\examples{
-api_instance <- AbstractAPI$new(url = "https://api.example.com/resource")
+connecting to a storr object for caching API responses, validating params
+against a list of valid keys, and provides an interface for CRUD
+operations
 }
 \seealso{
 Other API: 
@@ -29,18 +27,19 @@ Other API:
 \item{\code{url}}{The URL for the API. When this is set,
 it is checked for validity using the current token/header}
 
-\item{\code{redis}}{When a redis host AND port are passed, a \code{hiredis}
-connection is created. To set this property, pass in a list with
-structure \code{list(host = "localhost", port = "6379")}}
+\item{\code{queue_name}}{The name of the queue for storing data in the storr
+cache. This is used to retrieve data from the cache. By default, it
+is set to the instance's unique ID.}
+
+\item{\code{storr}}{The storr object for caching API responses.
+This can be set to a user-provided storr object, or a default
+storr object will be created using the rds driver.}
 
 \item{\code{params}}{The ParamsList object containing parameters for the
 API request.}
 
 \item{\code{valid_param_keys}}{A character vector of valid parameter keys
 for the API.}
-
-\item{\code{temp_dir}}{The temporary directory in which the instance will
-create a subdirectory to store downloaded data.}
 }
 \if{html}{\out{</div>}}
 }
@@ -64,12 +63,12 @@ create a subdirectory to store downloaded data.}
 Initializes the API client
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{AbstractAPI$new(
-  url = "",
+  url = Sys.getenv("BASE_URL"),
   token = Sys.getenv("TOKEN"),
-  params = ParamsList(),
-  tmpdir = tempdir(),
-  redis_host = "localhost",
-  redis_port = 6379
+  valid_param_keys = NULL,
+  params = list(),
+  queue_name = NULL,
+  storr = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -78,16 +77,18 @@ Initializes the API client
 \describe{
 \item{\code{url}}{The API endpoint URL.}
 
-\item{\code{token}}{The authentication token. Defaults to the \code{TOKEN} environment variable.}
+\item{\code{token}}{The authentication token. Defaults to the \code{TOKEN}
+environment variable.}
 
-\item{\code{params}}{A ParamsList object containing parameters for the API request.}
+\item{\code{params}}{A ParamsList object containing parameters for the
+API request.}
 
-\item{\code{tmpdir}}{A path to the temporary directory in which the instance
-will create a subdirectory to store downloaded data.}
+\item{\code{queue_name}}{This will be used to store data pulled from the
+database in a cache for fast retrieval. Any instantiation with the
+same \code{queue_name} will have access to the same cache. By default,
+it will be set to the instances unique ID}
 
-\item{\code{redis_host}}{The host for the Redis connection.}
-
-\item{\code{redis_port}}{The port for the Redis connection.}
+\item{\code{storr}}{The storr object for caching API responses.}
 }
 \if{html}{\out{</div>}}
 }
@@ -124,7 +125,8 @@ Removes parameters from the ParamsList.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{keys}}{A vector of keys to remove. If NULL, all parameters are cleared.}
+\item{\code{keys}}{A vector of keys to remove. If NULL, the params are set to
+an empty ParamsList()}
 }
 \if{html}{\out{</div>}}
 }

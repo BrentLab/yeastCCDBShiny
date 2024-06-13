@@ -12,6 +12,22 @@ Retrieves rank response data from the database.
 \details{
 An R6 class to interact with the Rank Response API.
 }
+\note{
+the parent .is_valid_url is overwritten in this class, and
+the Sys.getenv("PROMOTERSETSIG_URL") is used to validate that the
+url works and the token is valid. The RankResponse endpoint, as it is
+currently written, does not return a response object unless parameters
+are passed
+
+Because of the way the rankresponse endpoint is currently set
+up, to check whether the header/token is valid, the PROMOTERSETSIG_URL
+is used in .is_valid_url(). This should be fixed in the database
+endpoint eventually.
+
+RANK_BIN_SIZE by default set at 5 -- it is possible to change
+this through this class's paramslist right now, but it isn't
+tracked in the cache
+}
 \seealso{
 Other API: 
 \code{\link{AbstractAPI}}
@@ -43,31 +59,48 @@ Other API:
 \if{html}{\out{<a id="method-RankResponseAPI-new"></a>}}
 \if{latex}{\out{\hypertarget{method-RankResponseAPI-new}{}}}
 \subsection{Method \code{new()}}{
-Initializes the RankResponseAPI client with a URL, token, and optional parameters.
+Initialize the RankResponseAPI object. This will serve
+as an interface to the RankResponse endpoint of both the database
+and the application cache
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RankResponseAPI$new(url = Sys.getenv("RANK_RESPONSE_URL"), ...)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RankResponseAPI-read"></a>}}
-\if{latex}{\out{\hypertarget{method-RankResponseAPI-read}{}}}
-\subsection{Method \code{read()}}{
-Asynchronously retrieve rank response data from the database.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RankResponseAPI$read(callback = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RankResponseAPI$new(url = Sys.getenv("RANKRESPONSE_URL", ""), ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{callback}}{A function to call when the data has been retrieved. The first argument of the callback should be \code{self}.}
+\item{\code{url}}{the URL of the Rank Response API}
+
+\item{\code{...}}{additional parameters to pass to \code{\link{AbstractAPI}}.
+See the new() method section.}
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Returns}{
-A promise that resolves when the data has been retrieved and the metadata updated.
 }
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RankResponseAPI-read"></a>}}
+\if{latex}{\out{\hypertarget{method-RankResponseAPI-read}{}}}
+\subsection{Method \code{read()}}{
+Retrieve data from the Rank Response API. At least the
+\code{promotersetsig_id} must be set in the params. If the \code{expression_id}
+is not also set, then all data associated with that
+\code{promotersetsig_id}, given any other parameters, will be pulled. The
+data will be cached with the <promotersetsig_id>_<experiment_id> as
+a key and the table as an R object as a value in this instance's
+cache. The metadata from the tarball will be returned, which can
+be used to access the data from the cache. It will always be fastest
+to check whether the promotersetsig_id/experiment_id sets already
+exist in the application cache before calling this function. If they
+do, extract that data and only call this on what is missing.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RankResponseAPI$read(
+  callback = function(metadata, ...) {
+     metadata
+ },
+  timeout = as.numeric(Sys.getenv("API_TIMEOUT", 60))
+)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RankResponseAPI-clone"></a>}}

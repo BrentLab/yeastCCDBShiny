@@ -5,18 +5,15 @@
 \alias{push.ParamsList}
 \alias{pop.ParamsList}
 \alias{print.ParamsList}
-\alias{clear.ParamsList}
 \title{ParamsList S3 Class}
 \usage{
 ParamsList(params = list())
 
-push.ParamsList(object, params)
+\method{push}{ParamsList}(object, params)
 
-pop.ParamsList(object, keys)
+\method{pop}{ParamsList}(object, keys)
 
 \method{print}{ParamsList}(object)
-
-clear.ParamsList(object)
 }
 \arguments{
 \item{params}{A list of key/value pairs to be added or updated in the ParamsList object.}
@@ -26,13 +23,11 @@ clear.ParamsList(object)
 \item{keys}{A single key as a string or a list of keys.}
 }
 \value{
-An object of class \code{ParamsList}.
+An object of class \code{ParamsList}, sorted by name.
 
-The updated \code{ParamsList} object.
+The updated \code{ParamsList} object, sorted by name
 
-A list of key/value pairs that were removed.
-
-The cleared \code{ParamsList} object.
+A sorted ParamsList with the popped key(s) removed.
 }
 \description{
 An S3 class to manage a list of parameters with methods to push, pop,
@@ -44,15 +39,13 @@ Removes and returns the value(s) associated with the provided key(s) from
 the ParamsList object.
 
 Prints the current state of the ParamsList object.
-
-Clears all parameters from the ParamsList object.
 }
 \examples{
 # Create an instance of ParamsList
 params <- ParamsList()
 
 # Push a single key/value pair
-params <- push(params, "key1", "value1")
+params <- push(params, list(key1 = "value1"))
 print(params)
 
 # Push multiple key/value pairs
@@ -67,10 +60,25 @@ print(params)
 # Pop multiple key/value pairs
 popped_values <- pop(params, c("key2", "key3"))
 print(popped_values)
-print(params)
 
 # Clear all parameters
 params <- clear(params)
 print(params)
+}
+\seealso{
+Other ParamsList-methods: 
+\code{\link{as.character.ParamsList}()},
+\code{\link{as.list.ParamsList}()},
+\code{\link{names.ParamsList}()}
+
+Other ParamsList-methods: 
+\code{\link{as.character.ParamsList}()},
+\code{\link{as.list.ParamsList}()},
+\code{\link{names.ParamsList}()}
+
+Other ParamsList-methods: 
+\code{\link{as.character.ParamsList}()},
+\code{\link{as.list.ParamsList}()},
+\code{\link{names.ParamsList}()}
 }
 \concept{ParamsList-methods}
