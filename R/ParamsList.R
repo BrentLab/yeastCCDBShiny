@@ -31,29 +31,45 @@ ParamsList <- function(params = list()) {
   if (length(params) > 0 && is.null(names(params))) {
     stop("params must be a named list")
   }
-
   sorted_params <- params[sort(names(params))]
   structure(list(params = sorted_params), class = "ParamsList")
 }
 
 #' Extract element from ParamsList using `[`
+#'
+#' @family ParamsList-methods
+#'
 #' @param x An object of class `ParamsList`.
 #' @param i The name(s) of the parameter(s) to extract.
 #' @param ... Additional arguments (not used).
+#'
 #' @return A ParamsList object with the subset of parameters.
 `[.ParamsList` <- function(x, i, ...) {
   ParamsList(x$params[i])
 }
 
 #' Extract element from ParamsList using `[[`
+#'
+#' @family ParamsList-methods
+#'
 #' @param x An object of class `ParamsList`.
 #' @param i The name of the parameter to extract.
 #' @param ... Additional arguments (not used).
+#'
 #' @return The value of the parameter.
 `[[.ParamsList` <- function(x, i, ...) {
   x$params[[i]]
 }
 
+#' Assign element to ParamsList using `[<-`
+#'
+#' @family ParamsList-methods
+#'
+#' @param x An object of class `ParamsList`.
+#' @param i The name(s) of the parameter(s) to assign.
+#' @param value The value(s) to assign to the parameter(s).
+#'
+#' @return The modified ParamsList object.
 `[<-.ParamsList` <- function(x, i, value) {
   if (!is.null(value) && length(i) != length(value)) {
     stop("Length of names and values must match")
@@ -70,9 +86,13 @@ ParamsList <- function(params = list()) {
 }
 
 #' Assign element to ParamsList using `[[<-`
+#'
+#' @family ParamsList-methods
+#'
 #' @param x An object of class `ParamsList`.
 #' @param i The name of the parameter to assign.
 #' @param value The value to assign to the parameter.
+#'
 #' @return The modified ParamsList object.
 `[[<-.ParamsList` <- function(x, i, value) {
   if (!is.character(i) || length(i) != 1) {
@@ -98,8 +118,8 @@ names.ParamsList <- function(object) {
 #' Print ParamsList
 #'
 #' Prints the current state of the ParamsList object.
+#'
 #' @family ParamsList-methods
-#' @rdname ParamsList
 #'
 #' @param object An object of class `ParamsList`.
 print.ParamsList <- function(object) {
@@ -113,7 +133,6 @@ print.ParamsList <- function(object) {
 #'
 #' Converts the current state of the ParamsList object to a character string.
 #' @family ParamsList-methods
-#' @rdname as.character.ParamsList
 #'
 #' @param x An object of class `ParamsList`.
 #' @param ... Additional arguments (not used).
@@ -126,6 +145,7 @@ as.character.ParamsList <- function(x, ...) {
         collapse = ", ")
 }
 
+# Define the as.list method for ParamsList
 #' Convert ParamsList to list
 #'
 #' Converts the current state of the ParamsList object to a list.
@@ -140,6 +160,15 @@ as.list.ParamsList <- function(x, ...) {
   x$params
 }
 
+#' Sort a ParamsList by name
+#'
+#' @family ParamsList-methods
+#'
+#' @param x An object of class `ParamsList`
+#' @param decreasing A logical value indicating whether to sort
+#'   in decreasing order
+#'
+#' @return A ParamsList object with the parameters sorted by name
 sort.ParamsList <- function(x, decreasing = FALSE, ...) {
   if (!is.logical(decreasing) || length(decreasing) != 1) {
     stop("`decreasing` must be a single logical value")
@@ -149,5 +178,3 @@ sort.ParamsList <- function(x, decreasing = FALSE, ...) {
   x$params <- x$params[sorted_names]
   x
 }
-
-

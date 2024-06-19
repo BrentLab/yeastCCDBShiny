@@ -19,3 +19,15 @@ The value of the parameter.
 \description{
 Extract element from ParamsList using \code{[[}
 }
+\seealso{
+Other ParamsList-methods: 
+\code{\link{[.ParamsList}()},
+\code{\link{[<-.ParamsList}()},
+\code{\link{[[<-.ParamsList}()},
+\code{\link{as.character.ParamsList}()},
+\code{\link{as.list.ParamsList}()},
+\code{\link{names.ParamsList}()},
+\code{\link{print.ParamsList}()},
+\code{\link{sort.ParamsList}()}
+}
+\concept{ParamsList-methods}

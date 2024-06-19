@@ -13,7 +13,8 @@ CSV file}
 \item{filename}{The name of the CSV file to read from the tarball}
 }
 \value{
-A dataframe with the contents of the specified CSV file from the tarball
+A dataframe with the contents of the specified
+CSV file from the tarball
 }
 \description{
 Read in a CSV File from a Rank Response Tarball

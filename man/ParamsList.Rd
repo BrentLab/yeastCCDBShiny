@@ -2,83 +2,35 @@
 % Please edit documentation in R/ParamsList.R
 \name{ParamsList}
 \alias{ParamsList}
-\alias{push.ParamsList}
-\alias{pop.ParamsList}
-\alias{print.ParamsList}
 \title{ParamsList S3 Class}
 \usage{
 ParamsList(params = list())
-
-\method{push}{ParamsList}(object, params)
-
-\method{pop}{ParamsList}(object, keys)
-
-\method{print}{ParamsList}(object)
 }
 \arguments{
-\item{params}{A list of key/value pairs to be added or updated in the ParamsList object.}
-
-\item{object}{An object of class \code{ParamsList}.}
-
-\item{keys}{A single key as a string or a list of keys.}
+\item{params}{A list of parameters to initialize the ParamsList object.}
 }
 \value{
 An object of class \code{ParamsList}, sorted by name.
-
-The updated \code{ParamsList} object, sorted by name
-
-A sorted ParamsList with the popped key(s) removed.
 }
 \description{
-An S3 class to manage a list of parameters with methods to push, pop,
-print, and clear parameters.
-
-Adds a list of key/value pairs to the ParamsList object. If a key already exists, its value is updated.
-
-Removes and returns the value(s) associated with the provided key(s) from
-the ParamsList object.
-
-Prints the current state of the ParamsList object.
+An S3 class to manage a list of parameters with methods to print and clear parameters.
 }
 \examples{
 # Create an instance of ParamsList
-params <- ParamsList()
-
-# Push a single key/value pair
-params <- push(params, list(key1 = "value1"))
+params <- ParamsList(list(a = 1, b = 2))
 print(params)
 
-# Push multiple key/value pairs
-params <- push(params, list(key2 = "value2", key3 = "value3"))
+# Use [ and [[ to extract elements
+print(params['a'])
+print(params[['a']])
+
+# Use [<- and [[<- to assign elements
+params['c'] <- 3
 print(params)
 
-# Pop a single key/value pair
-popped_value <- pop(params, "key1")
-print(popped_value)
+params[c('d', 'e', 'f')] <- list(4, 5, 6)
 print(params)
 
-# Pop multiple key/value pairs
-popped_values <- pop(params, c("key2", "key3"))
-print(popped_values)
-
-# Clear all parameters
-params <- clear(params)
+params[['g']] <- 7
 print(params)
 }
-\seealso{
-Other ParamsList-methods: 
-\code{\link{as.character.ParamsList}()},
-\code{\link{as.list.ParamsList}()},
-\code{\link{names.ParamsList}()}
-
-Other ParamsList-methods: 
-\code{\link{as.character.ParamsList}()},
-\code{\link{as.list.ParamsList}()},
-\code{\link{names.ParamsList}()}
-
-Other ParamsList-methods: 
-\code{\link{as.character.ParamsList}()},
-\code{\link{as.list.ParamsList}()},
-\code{\link{names.ParamsList}()}
-}
-\concept{ParamsList-methods}

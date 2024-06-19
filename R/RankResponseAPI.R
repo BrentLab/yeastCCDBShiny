@@ -16,9 +16,8 @@
 #' @importFrom futile.logger flog.debug
 #'
 #' @return A RankResponseAPI object
-# RankResponseAPI R6 Class
 RankResponseAPI <- R6::R6Class(
-  "RankResponseAPI",
+  classname = "RankResponseAPI",
   inherit = AbstractAPI,
   public = list(
 

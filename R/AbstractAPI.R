@@ -22,6 +22,8 @@ AbstractAPI <- R6::R6Class("AbstractAPI",
     #' @param url The API endpoint URL.
     #' @param token The authentication token. Defaults to the `TOKEN`
     #'   environment variable.
+    #' @param valid_param_keys A character vector of valid parameter keys for
+    #'  the API.
     #' @param params A ParamsList object containing parameters for the
     #'   API request.
     #' @param queue_name This will be used to store data pulled from the
@@ -307,6 +309,14 @@ AbstractAPI <- R6::R6Class("AbstractAPI",
     # the `default` is the value returned if the key is not found. NULL by
     # default
     .storr_get = function(key, default = NULL) {
+      tryCatch({
+        key = as.character(key)
+      }, error = function(e){
+        futile.logger::flog.error(paste("Error coercing key to character: ",
+                                        e$message
+        ))
+        NULL
+      })
       if (is.null(self$storr)) {
         futile.logger::flog.debug(".storr_get(): storr not configured")
         NULL
@@ -338,7 +348,15 @@ AbstractAPI <- R6::R6Class("AbstractAPI",
     # NULL. NULL is also returned if there is an error, but the error is
     # logged at the error level
     .storr_set = function(key, value) {
-      if (self$storr == NULL) {
+      tryCatch({
+        key = as.character(key)
+      }, error = function(e){
+        futile.logger::flog.error(paste("Error coercing key to character: ",
+          e$message
+        ))
+        NULL
+      })
+      if (is.null(self$storr)) {
         futile.logger::flog.debug(".storr_set(): storr not configured")
         NULL
       } else {
@@ -359,7 +377,7 @@ AbstractAPI <- R6::R6Class("AbstractAPI",
       }
     },
     .storr_list = function() {
-      if (self$storr == NULL) {
+      if (is.null(self$storr)) {
         futile.logger::flog.debug(".storr_list(): storr not configured")
         NULL
       } else {
@@ -378,7 +396,15 @@ AbstractAPI <- R6::R6Class("AbstractAPI",
       }
     },
     .storr_delete = function(key) {
-      if (self$storr == NULL) {
+      tryCatch({
+        key = as.character(key)
+      }, error = function(e){
+        futile.logger::flog.error(paste("Error coercing key to character: ",
+                                        e$message
+        ))
+        NULL
+      })
+      if (is.null(self$storr)) {
         futile.logger::flog.debug(".storr_delete(): storr not configured")
         NULL
       } else {

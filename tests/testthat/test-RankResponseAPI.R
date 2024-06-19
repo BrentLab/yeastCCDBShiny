@@ -22,8 +22,8 @@ test_that("RankResponseAPI instantiation failure", {
 })
 
 # to make this work, I had to comment out the httptest::with_mock_api
-# and then enter httptest::start_capture() in the console, run
-# devtools::test_active_file() and then enter httptest::stop_capture()
+# and then enter httptest::start_capturing() in the console, run
+# devtools::test_active_file() and then enter httptest::stop_capturing()
 # after that, with the uncommented httptest::with_mock_api, it did work
 test_that(".get_data_from_api() success", {
   withr::with_envvar(

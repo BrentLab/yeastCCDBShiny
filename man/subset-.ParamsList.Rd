@@ -2,7 +2,7 @@
 % Please edit documentation in R/ParamsList.R
 \name{[<-.ParamsList}
 \alias{[<-.ParamsList}
-\title{Assign element(s) to ParamsList using \verb{[<-}}
+\title{Assign element to ParamsList using \verb{[<-}}
 \usage{
 \method{[}{ParamsList}(x, i) <- value
 }
@@ -17,5 +17,17 @@
 The modified ParamsList object.
 }
 \description{
-Assign element(s) to ParamsList using \verb{[<-}
+Assign element to ParamsList using \verb{[<-}
 }
+\seealso{
+Other ParamsList-methods: 
+\code{\link{[.ParamsList}()},
+\code{\link{[[.ParamsList}()},
+\code{\link{[[<-.ParamsList}()},
+\code{\link{as.character.ParamsList}()},
+\code{\link{as.list.ParamsList}()},
+\code{\link{names.ParamsList}()},
+\code{\link{print.ParamsList}()},
+\code{\link{sort.ParamsList}()}
+}
+\concept{ParamsList-methods}

@@ -19,8 +19,13 @@ Converts the current state of the ParamsList object to a character string.
 }
 \seealso{
 Other ParamsList-methods: 
-\code{\link{ParamsList}()},
+\code{\link{[.ParamsList}()},
+\code{\link{[<-.ParamsList}()},
+\code{\link{[[.ParamsList}()},
+\code{\link{[[<-.ParamsList}()},
 \code{\link{as.list.ParamsList}()},
-\code{\link{names.ParamsList}()}
+\code{\link{names.ParamsList}()},
+\code{\link{print.ParamsList}()},
+\code{\link{sort.ParamsList}()}
 }
 \concept{ParamsList-methods}

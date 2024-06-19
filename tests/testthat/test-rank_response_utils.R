@@ -22,7 +22,6 @@ test_that("get_rank_response_table handles successful HTTP response", {
   url = httr::parse_url("http://fakeapi.com/api/promotersetsig/rankresponse")
   url$query = list(promotersetsig_id = 123, experiment_id = 456)
   token = 'fake_token'
-  browser()
   webmockr::stub_request("get", httr::build_url(url)) %>%
     webmockr::wi_th(headers = list("Authorization" = paste("Token", token))) %>%
     webmockr::to_return(body = raw_content,
@@ -32,7 +31,6 @@ test_that("get_rank_response_table handles successful HTTP response", {
   # Call the function that processes the HTTP response
   result <- get_rank_response_table("http://fakeapi.com/", "123", "456", token)
 
-  browser()
 
   expect_equal(nrow(result), 2)
   expect_equal(ncol(result), 2)

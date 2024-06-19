@@ -12,6 +12,7 @@ operations
 }
 \seealso{
 Other API: 
+\code{\link{PromoterSetSigAPI}},
 \code{\link{RankResponseAPI}}
 }
 \concept{API}
@@ -79,6 +80,9 @@ Initializes the API client
 
 \item{\code{token}}{The authentication token. Defaults to the \code{TOKEN}
 environment variable.}
+
+\item{\code{valid_param_keys}}{A character vector of valid parameter keys for
+the API.}
 
 \item{\code{params}}{A ParamsList object containing parameters for the
 API request.}
