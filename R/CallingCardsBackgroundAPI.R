@@ -1,6 +1,6 @@
-#' ExpressionAPI R6 Class
+#' CallingCardsBackgroundAPI R6 Class
 #'
-#' An R6 class to interact with the ExpressionAPI endpoint.
+#' An R6 class to interact with the CallingCardsBackgroundAPI endpoint.
 #'
 #' @family API
 #'
@@ -12,12 +12,12 @@
 #' @importFrom dplyr as_tibble
 #' @importFrom readr read_csv
 #'
-#' @return A ExpressionAPI object
-ExpressionAPI = R6Class(
-  classname = "ExpressionAPI",
+#' @return A CallingCardsBackgroundAPI object
+CallingCardsBackgroundAPI = R6Class(
+  classname = "CallingCardsBackgroundAPI",
   inherit = AbstractRecordsAndFilesAPI,
   public = list(
-    initialize = function(url = Sys.getenv("EXPRESSION_URL"), ...) {
+    initialize = function(url = Sys.getenv("CALLINGCARDSBACKGROUND_URL"), ...) {
       valid_param_keys = c('id',
                            'regulator',
                            'regulator_locus_tag',

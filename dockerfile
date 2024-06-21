@@ -2,7 +2,6 @@
 FROM rocker/r-ver:4.3.0
 
 # Install dependencies
-# libhiredis-dev is for redis and R redux -- remove if not using
 RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     pandoc \
@@ -13,7 +12,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     libssh2-1-dev \
     libsodium-dev \
-    libhiredis-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Clean up

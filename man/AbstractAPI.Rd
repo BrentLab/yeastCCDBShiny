@@ -12,8 +12,17 @@ operations
 }
 \seealso{
 Other API: 
+\code{\link{AbstractRecordsAndFilesAPI}},
+\code{\link{AbstractRecordsOnlyAPI}},
+\code{\link{BindingManualQCAPI}},
+\code{\link{DataSourceAPI}},
+\code{\link{ExpressionAPI}},
+\code{\link{ExpressionManualQCAPI}},
+\code{\link{FileFormatAPI}},
+\code{\link{GenomicFeatureAPI}},
 \code{\link{PromoterSetSigAPI}},
-\code{\link{RankResponseAPI}}
+\code{\link{RankResponseAPI}},
+\code{\link{RegulatorAPI}}
 }
 \concept{API}
 \section{Active bindings}{

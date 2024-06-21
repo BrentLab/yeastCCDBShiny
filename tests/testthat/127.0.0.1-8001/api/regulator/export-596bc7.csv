@@ -1,0 +1,3 @@
+id,uploader_id,upload_date,modifier_id,modified_date,genomicfeature_id,under_development,notes,regulator_locus_tag,regulator_symbol
+1348,1,2024-03-18,1,2024-03-18 18:40:07.565764+00:00,6498,False,none,YOR358W,HAP5
+1427,1,2024-03-18,1,2024-03-18 18:40:27.400953+00:00,6807,False,none,YPL038W,MET31

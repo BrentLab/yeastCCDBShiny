@@ -10,7 +10,6 @@
 #'
 #' @importFrom R6 R6Class
 #' @importFrom httr add_headers HEAD status_code
-#' @importFrom redux hiredis
 #' @importFrom futile.logger flog.debug flog.info flog.error
 #' @importFrom uuid UUIDgenerate
 #' @importFrom storr storr driver_rds

@@ -70,21 +70,17 @@ test_that("PromoterSetSigAPI$read with retrieve_files is successful", {
       expect_true(is.list(data_list))
       expect_true(length(data_list) == 5)
 
-      # out_future_storr <- api_instance$read(retrieve_files = TRUE)
-      #
-      # out_storr <- future::value(out_future)
-
       # Capture the log output
       log_output <- capture.output({
         out_future_storr <- api_instance$read(retrieve_files = TRUE)
         out_storr <- future::value(out_future_storr)
       })
 
-      # Verify the log message
+      # Verify the log message -- TODO: make sure there are 5 of these.
+      # can test that all of the expected ID are there
       log_message <- paste(log_output, collapse = "\n")
-      expect_true(grepl("promotersetsig id: \\d+ retrieved from the storr.",
+      expect_true(grepl("PromoterSetSigAPI id: \\d+ retrieved from the storr.",
                         log_message))
-
 
     })
   })

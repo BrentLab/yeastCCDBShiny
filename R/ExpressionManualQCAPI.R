@@ -1,6 +1,6 @@
-#' ExpressionAPI R6 Class
+#' ExpressionManualQCAPI R6 Class
 #'
-#' An R6 class to interact with the ExpressionAPI endpoint.
+#' An R6 class to interact with the ExpressionManualQCAPI endpoint.
 #'
 #' @family API
 #'
@@ -12,23 +12,24 @@
 #' @importFrom dplyr as_tibble
 #' @importFrom readr read_csv
 #'
-#' @return A ExpressionAPI object
-ExpressionAPI = R6Class(
-  classname = "ExpressionAPI",
-  inherit = AbstractRecordsAndFilesAPI,
+#' @return A ExpressionManualQCAPI object
+ExpressionManualQCAPI = R6Class(
+  classname = "ExpressionManualQCAPI",
+  inherit = AbstractRecordsOnlyAPI,
   public = list(
-    initialize = function(url = Sys.getenv("EXPRESSION_URL"), ...) {
+    initialize = function(url = Sys.getenv("EXPRESSIONMANUALQC_URL"), ...) {
       valid_param_keys = c('id',
-                           'regulator',
+                           'expression',
+                           'strain_verified',
                            'regulator_locus_tag',
                            'regulator_symbol',
                            'batch',
+                           'replicate',
                            'control',
                            'mechanism',
                            'restriction',
                            'time',
                            'source',
-                           'source_time',
                            'lab',
                            'assay',
                            'workflow')
